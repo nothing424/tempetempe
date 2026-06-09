@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Anime - TempePlay</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    .browse-page { max-width:1400px; margin:0 auto; padding:32px; position:relative; z-index:1; }
+    .browse-header { margin-bottom:32px; }
+    .browse-header h1 { font-family:'Baloo 2',sans-serif; font-size:2rem; font-weight:800; margin-bottom:16px; }
+    .filter-bar { display:flex; gap:10px; flex-wrap:wrap; }
+    .filter-btn { background:var(--card); border:1px solid var(--border); color:var(--text2); border-radius:50px; padding:8px 18px; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
+    .filter-btn:hover,.filter-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .load-more { display:flex; justify-content:center; margin-top:32px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../index.html" class="nav-brand">
+      <img src="../assets/logo.png" alt="TempePlay" onerror="this.style.display='none'" />
+      <span>Tempe<span class="accent">Play</span></span>
+    </a>
+    <div class="nav-search">
+      <input type="text" id="search-input" placeholder="Cari anime..." />
+      <button id="search-btn">🔍</button>
+    </div>
+    <div class="nav-actions">
+      <a href="watchparty.html" class="btn-watchparty">🍿 Watch Party</a>
+      <div id="user-menu" class="user-menu hidden">
+        <img id="user-avatar" src="" alt="Avatar" class="user-avatar" />
+        <div class="user-dropdown">
+          <span id="user-display-name" class="user-name"></span>
+          <a href="profile.html">Profil</a>
+          <button id="btn-logout">Keluar</button>
+        </div>
+      </div>
+      <button id="btn-login-nav" class="btn-primary">Masuk</button>
+    </div>
+  </nav>
+
+  <div id="auth-overlay" class="auth-overlay hidden">
+    <div class="auth-modal">
+      <div class="auth-logo"><span class="brand-text">Tempe<span>Play</span></span></div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Masuk</button>
+        <button class="auth-tab" data-tab="register">Daftar</button>
+      </div>
+      <div class="auth-form" id="form-login">
+        <button class="btn-google" id="btn-google-login">Google</button>
+        <div class="divider"><span>atau</span></div>
+        <input type="email" id="login-email" placeholder="Email" class="auth-input" />
+        <input type="password" id="login-password" placeholder="Password" class="auth-input" />
+        <div class="auth-error" id="login-error"></div>
+        <button class="btn-primary w-full" id="btn-email-login">Masuk</button>
+      </div>
+      <div class="auth-form hidden" id="form-register">
+        <button class="btn-google" id="btn-google-register">Google</button>
+        <div class="divider"><span>atau</span></div>
+        <input type="text" id="register-name" placeholder="Nama tampilan" class="auth-input" />
+        <input type="email" id="register-email" placeholder="Email" class="auth-input" />
+        <input type="password" id="register-password" placeholder="Password" class="auth-input" />
+        <div class="auth-error" id="register-error"></div>
+        <button class="btn-primary w-full" id="btn-email-register">Daftar</button>
+      </div>
+      <button class="auth-close" id="auth-close">✕</button>
+    </div>
+  </div>
+
+  <div class="browse-page">
+    <div class="browse-header">
+      <h1>🎌 Browse Anime</h1>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="trending">🔥 Trending</button>
+        <button class="filter-btn" data-filter="popular">👑 Populer</button>
+        <button class="filter-btn" data-filter="seasonal">🌸 Season Ini</button>
+        <button class="filter-btn" data-filter="action">⚔️ Action</button>
+        <button class="filter-btn" data-filter="romance">💕 Romance</button>
+        <button class="filter-btn" data-filter="comedy">😂 Comedy</button>
+        <button class="filter-btn" data-filter="fantasy">🧙 Fantasy</button>
+        <button class="filter-btn" data-filter="scifi">🚀 Sci-Fi</button>
+      </div>
+    </div>
+    <div class="anime-grid" id="browse-grid">
+      ${Array(18).fill('<div class="skeleton-card"></div>').join('')}
+    </div>
+    <div class="load-more">
+      <button class="btn-secondary btn-lg" id="btn-load-more">Muat Lebih Banyak</button>
+    </div>
+  </div>
+
+  <div id="search-modal" class="search-modal hidden">
+    <div class="search-modal-inner">
+      <div class="search-modal-header">
+        <h3>Hasil Pencarian</h3>
+        <button id="search-close">✕</button>
+      </div>
+      <div class="anime-grid" id="search-results"></div>
+    </div>
+  </div>
+
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/anilist.js"></script>
+  <script>
+    let currentPage = 1;
+    let currentFilter = 'trending';
+
+    const filterFns = {
+      trending: () => fetchTrending(currentPage, 24),
+      popular: () => fetchPopular(currentPage, 24),
+      seasonal: () => fetchSeasonal(currentPage, 24),
+      action: () => searchAnime('action anime', currentPage, 24),
+      romance: () => searchAnime('romance anime', currentPage, 24),
+      comedy: () => searchAnime('comedy anime', currentPage, 24),
+      fantasy: () => searchAnime('fantasy anime', currentPage, 24),
+      scifi: () => searchAnime('sci-fi anime', currentPage, 24),
+    };
+
+    async function loadBrowse(reset = false) {
+      const grid = document.getElementById('browse-grid');
+      if (reset) { currentPage = 1; grid.innerHTML = Array(18).fill('<div class="skeleton-card"></div>').join(''); }
+      try {
+        const animes = await filterFns[currentFilter]();
+        if (reset) grid.innerHTML = '';
+        grid.innerHTML += animes.map(buildAnimeCard).join('');
+      } catch(e) {
+        grid.innerHTML = '<p style="color:var(--text2);padding:20px">Gagal memuat 😢</p>';
+      }
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        loadBrowse(true);
+      });
+    });
+
+    document.getElementById('btn-load-more').addEventListener('click', () => {
+      currentPage++;
+      loadBrowse(false);
+    });
+
+    // Search
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchModal = document.getElementById('search-modal');
+    const searchResults = document.getElementById('search-results');
+    document.getElementById('search-close').onclick = () => searchModal.classList.add('hidden');
+    searchModal.onclick = (e) => { if (e.target === searchModal) searchModal.classList.add('hidden'); };
+    async function doSearch() {
+      const q = searchInput.value.trim(); if (!q) return;
+      searchModal.classList.remove('hidden');
+      searchResults.innerHTML = Array(8).fill('<div class="skeleton-card"></div>').join('');
+      const results = await searchAnime(q);
+      searchResults.innerHTML = results.map(buildAnimeCard).join('');
+    }
+    searchBtn.onclick = doSearch;
+    searchInput.onkeydown = (e) => { if (e.key === 'Enter') doSearch(); };
+
+    document.addEventListener('DOMContentLoaded', () => loadBrowse(true));
+  </script>
+</body>
+</html>
