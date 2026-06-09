@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil - TempePlay</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    .profile-page { max-width:600px; margin:0 auto; padding:40px 24px; position:relative; z-index:1; }
+    .profile-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:36px; }
+    .profile-header { display:flex; align-items:center; gap:20px; margin-bottom:32px; }
+    .profile-avatar-wrap { position:relative; }
+    .profile-avatar { width:90px; height:90px; border-radius:50%; border:3px solid var(--primary); object-fit:cover; }
+    .profile-name { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; }
+    .profile-email { color:var(--text2); font-size:0.9rem; margin-top:4px; }
+    .form-group { margin-bottom:18px; }
+    .form-label { display:block; font-weight:800; font-size:0.85rem; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+    .profile-section-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:16px; padding-top:24px; border-top:1px solid var(--border); }
+    .danger-zone { background:rgba(255,71,87,0.08); border:1px solid rgba(255,71,87,0.2); border-radius:var(--radius); padding:20px; margin-top:24px; }
+    .danger-zone h4 { color:var(--danger); margin-bottom:8px; font-size:0.95rem; }
+    .danger-zone p { color:var(--text2); font-size:0.85rem; margin-bottom:14px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../index.html" class="nav-brand">
+      <img src="../assets/logo.png" alt="TempePlay" onerror="this.style.display='none'" />
+      <span>Tempe<span class="accent">Play</span></span>
+    </a>
+    <div class="nav-actions" style="margin-left:auto">
+      <div id="user-menu" class="user-menu hidden">
+        <img id="user-avatar" src="" alt="Avatar" class="user-avatar" />
+        <div class="user-dropdown">
+          <span id="user-display-name" class="user-name"></span>
+          <a href="profile.html">Profil</a>
+          <button id="btn-logout">Keluar</button>
+        </div>
+      </div>
+      <button id="btn-login-nav" class="btn-primary">Masuk</button>
+    </div>
+  </nav>
+
+  <div id="auth-overlay" class="auth-overlay hidden">
+    <div class="auth-modal">
+      <div class="auth-logo"><span class="brand-text">Tempe<span>Play</span></span></div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Masuk</button>
+        <button class="auth-tab" data-tab="register">Daftar</button>
+      </div>
+      <div class="auth-form" id="form-login">
+        <button class="btn-google" id="btn-google-login">Google</button>
+        <div class="divider"><span>atau</span></div>
+        <input type="email" id="login-email" placeholder="Email" class="auth-input" />
+        <input type="password" id="login-password" placeholder="Password" class="auth-input" />
+        <div class="auth-error" id="login-error"></div>
+        <button class="btn-primary w-full" id="btn-email-login">Masuk</button>
+      </div>
+      <div class="auth-form hidden" id="form-register">
+        <button class="btn-google" id="btn-google-register">Google</button>
+        <div class="divider"><span>atau</span></div>
+        <input type="text" id="register-name" placeholder="Nama tampilan" class="auth-input" />
+        <input type="email" id="register-email" placeholder="Email" class="auth-input" />
+        <input type="password" id="register-password" placeholder="Password" class="auth-input" />
+        <div class="auth-error" id="register-error"></div>
+        <button class="btn-primary w-full" id="btn-email-register">Daftar</button>
+      </div>
+      <button class="auth-close" id="auth-close">✕</button>
+    </div>
+  </div>
+
+  <div class="profile-page">
+    <div id="profile-loading" style="text-align:center;padding:60px;color:var(--text2)">
+      <div class="spinner" style="margin:0 auto"></div>
+      <p style="margin-top:16px">Memuat profil...</p>
+    </div>
+    <div id="profile-card" class="profile-card hidden">
+      <div class="profile-header">
+        <div class="profile-avatar-wrap">
+          <img id="profile-avatar" src="" alt="Avatar" class="profile-avatar" />
+        </div>
+        <div>
+          <div id="profile-name" class="profile-name"></div>
+          <div id="profile-email" class="profile-email"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nama Tampilan</label>
+        <input type="text" id="edit-name" class="auth-input" placeholder="Nama kamu" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL Foto Profil</label>
+        <input type="text" id="edit-photo" class="auth-input" placeholder="https://..." />
+      </div>
+      <button class="btn-primary" id="btn-save-profile">💾 Simpan Perubahan</button>
+
+      <div class="profile-section-title">🔐 Ubah Password</div>
+      <div class="form-group">
+        <label class="form-label">Password Baru</label>
+        <input type="password" id="new-password" class="auth-input" placeholder="Min 6 karakter" />
+      </div>
+      <button class="btn-secondary" id="btn-change-password">Ubah Password</button>
+
+      <div class="danger-zone">
+        <h4>⚠️ Danger Zone</h4>
+        <p>Keluar dari semua perangkat.</p>
+        <button class="btn-danger" id="btn-logout-all" style="border:none">Keluar Semua Perangkat</button>
+      </div>
+    </div>
+    <div id="profile-not-logged" class="profile-card hidden" style="text-align:center;padding:60px">
+      <p style="color:var(--text2);margin-bottom:20px">Login dulu untuk lihat profil!</p>
+      <button class="btn-primary" id="btn-profile-login">Masuk Sekarang</button>
+    </div>
+  </div>
+
+  <script src="../js/firebase-config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    window.addEventListener('firebase-ready', () => {
+      const { onAuthStateChanged, updateProfile, doc, updateDoc, getDoc } = window.firebaseFns;
+      const auth = window.firebaseAuth;
+      const db = window.firebaseDB;
+
+      onAuthStateChanged(auth, async (user) => {
+        document.getElementById('profile-loading').style.display = 'none';
+        if (!user) {
+          document.getElementById('profile-not-logged').classList.remove('hidden');
+          document.getElementById('btn-profile-login').onclick = () => window.showAuthModal();
+          return;
+        }
+        document.getElementById('profile-card').classList.remove('hidden');
+        document.getElementById('profile-avatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'U')}&background=0D8ABC&color=fff&size=120`;
+        document.getElementById('profile-name').textContent = user.displayName || 'TempeUser';
+        document.getElementById('profile-email').textContent = user.email;
+        document.getElementById('edit-name').value = user.displayName || '';
+        document.getElementById('edit-photo').value = user.photoURL || '';
+
+        // Save profile
+        document.getElementById('btn-save-profile').onclick = async () => {
+          const name = document.getElementById('edit-name').value.trim();
+          const photo = document.getElementById('edit-photo').value.trim();
+          if (!name) { showToast('Nama tidak boleh kosong!', 'error'); return; }
+          try {
+            await updateProfile(user, { displayName: name, photoURL: photo || null });
+            await updateDoc(doc(db, 'users', user.uid), { displayName: name, photoURL: photo });
+            document.getElementById('profile-name').textContent = name;
+            document.getElementById('profile-avatar').src = photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=120`;
+            showToast('Profil berhasil disimpan! ✅');
+          } catch(e) { showToast(e.message, 'error'); }
+        };
+
+        // Change password
+        document.getElementById('btn-change-password').onclick = async () => {
+          const { updatePassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+          const pass = document.getElementById('new-password').value;
+          if (pass.length < 6) { showToast('Password minimal 6 karakter!', 'error'); return; }
+          try {
+            await updatePassword(user, pass);
+            document.getElementById('new-password').value = '';
+            showToast('Password berhasil diubah! 🔐');
+          } catch(e) {
+            if (e.code === 'auth/requires-recent-login') showToast('Login ulang dulu sebelum ubah password!', 'error');
+            else showToast(e.message, 'error');
+          }
+        };
+
+        // Logout all
+        document.getElementById('btn-logout-all').onclick = async () => {
+          const { signOut } = window.firebaseFns;
+          await signOut(auth);
+          showToast('Berhasil keluar 👋');
+          setTimeout(() => location.href = '../index.html', 800);
+        };
+      });
+    });
+  </script>
+</body>
+</html>
